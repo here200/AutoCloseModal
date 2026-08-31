@@ -1,0 +1,16 @@
+{
+    "manifest_version": 3,
+    "name": "自动勾选并关闭弹窗",
+    "version": "1.0",
+    "description": "弹窗出现时自动勾选所有复选框并点击确认按钮，无需人工交互",
+    "content_scripts": [
+        {
+            "matches": ["http://*/*", "https://*/*"],
+            "js": [
+                "./scripts/config.js",
+                "./scripts/content.js"
+            ]
+        }
+    ]
+
+}

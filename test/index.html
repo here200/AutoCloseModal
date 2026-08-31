@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弹窗手动操作对照测试页</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    max-width: 720px; margin: 40px auto; padding: 0 20px;
+    color: #333; line-height: 1.6;
+  }
+  h1 { font-size: 22px; }
+  .tip { color: #888; font-size: 13px; }
+  .btn {
+    padding: 10px 20px; font-size: 15px; cursor: pointer;
+    border: none; border-radius: 6px; background: #4a90d9; color: #fff;
+  }
+  .btn:hover { background: #3a7bc8; }
+
+  /* 遮罩 */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 1000;
+    justify-content: center; align-items: center;
+  }
+  .overlay.show { display: flex; }
+  /* 弹窗 */
+  .dialog {
+    background: #fff; width: 400px; border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.25); overflow: hidden;
+  }
+  .dialog-header {
+    padding: 14px 18px; font-size: 16px; font-weight: 600;
+    border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;
+  }
+  .dialog-body { padding: 16px 18px; }
+  .check-list { list-style: none; padding: 0; margin: 0 0 8px; }
+  .check-list li {
+    padding: 8px 6px; border-bottom: 1px dashed #f0f0f0;
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+  }
+  .check-list li:last-child { border-bottom: none; }
+  .check-list input { width: 16px; height: 16px; cursor: pointer; }
+  .dialog-footer {
+    padding: 12px 18px; border-top: 1px solid #eee;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .btn-cancel { background: #f5f5f5; color: #333; }
+  .btn-cancel:hover { background: #e8e8e8; }
+  .btn-confirm { background: #4a90d9; color: #fff; }
+  .btn-confirm:hover { background: #3a7bc8; }
+
+  #log {
+    margin-top: 24px; padding: 12px 14px; min-height: 60px;
+    background: #f7f9fc; border: 1px solid #e4e9f0; border-radius: 8px;
+    font-size: 13px; color: #555; white-space: pre-wrap;
+  }
+  #log .empty { color: #aaa; }
+</style>
+</head>
+<body>
+  <h1>弹窗手动操作对照测试页</h1>
+  <p class="tip">本页面不含任何自动脚本。弹窗出现后，需要你手动勾选全部选项，再手动点击「确定」才能关闭。</p>
+  <button class="btn" id="openBtn">打开弹窗</button>
+
+  <div class="overlay" id="overlay">
+    <div class="dialog" role="dialog" aria-label="请选择所有项">
+      <div class="dialog-header">
+        <span>请选择所有项</span>
+      </div>
+      <div class="dialog-body">
+        <ul class="check-list" id="checkList">
+          <li><input type="checkbox" id="optA"><label for="optA">选项 A</label></li>
+          <li><input type="checkbox" id="optB"><label for="optB">选项 B</label></li>
+          <li><input type="checkbox" id="optC"><label for="optC">选项 C</label></li>
+          <li><input type="checkbox" id="optD"><label for="optD">选项 D</label></li>
+          <li><input type="checkbox" id="optE"><label for="optE">选项 E</label></li>
+        </ul>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-cancel" id="cancelBtn">取消</button>
+        <button class="btn btn-confirm" id="confirmBtn">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="log"><span class="empty">操作日志将显示在这里...</span></div>
+
+<script>
+  const overlay = document.getElementById('overlay');
+  const openBtn = document.getElementById('openBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const checkboxes = document.querySelectorAll('#checkList input[type="checkbox"]');
+  const logEl = document.getElementById('log');
+
+  function log(msg) {
+    if (logEl.querySelector('.empty')) logEl.innerHTML = '';
+    const time = new Date().toLocaleTimeString();
+    logEl.innerHTML += `[${time}] ${msg}\n`;
+  }
+  function closeDialog(by) { overlay.classList.remove('show'); log(`弹窗已通过【${by}】关闭`); }
+
+  openBtn.addEventListener('click', () => {
+    checkboxes.forEach(cb => cb.checked = false);
+    overlay.classList.add('show');
+    log('弹窗已打开（请手动勾选全部选项并点击确定）');
+  });
+  cancelBtn.addEventListener('click', () => closeDialog('取消'));
+  confirmBtn.addEventListener('click', () => {
+    const checked = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.id.replace('opt',''));
+    log(`已勾选: ${checked.length ? checked.join(', ') : '无'}`);
+    closeDialog('确定');
+  });
+</script>
+</body>
+</html>
