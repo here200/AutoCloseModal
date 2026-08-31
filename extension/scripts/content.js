@@ -25,12 +25,6 @@
     }
 
     function processModal(modal) {
-        // 如果已经打过标记，直接返回，防止重复处理
-        if (modal.dataset.autoClosed) {
-            log('弹窗已处理过，跳过', modal)
-            return true
-        }
-
         // observer 暂停观察
         log('暂停观察 DOM 变化...')
         observer.disconnect()
@@ -46,6 +40,9 @@
             }
         })
 
+        // observer 恢复观察
+        observeDOMChanges()
+
         // 如果弹窗里没有找到任何可见复选框，认为尚未加载完成，返回 false 等待下次重试
         if (!checkboxFound) {
             log('未找到可见复选框，等待重试...')
@@ -60,15 +57,12 @@
         }
 
         setTimeout(() => {
+            processedModals.delete(modal)
+            log('processedModals[After]: ', processedModals)
             confirmBtn.click()
             log('已点击确认按钮:', confirmBtn)
         }, CONFIG.confirmButtonDelay)
 
-        // 标记该弹窗已处理过，避免重复处理
-        modal.dataset.autoClosed = 'true'
-        // observer 恢复观察
-        observeDOMChanges()
-        
         return true
     }
 
@@ -78,20 +72,12 @@
     function scanAndProcess() {
         const modals = document.querySelectorAll(CONFIG.modalSelector)
         for (const modal of modals) {
-            if (isVisible(modal)) {
-                // 同时满足：没被 WeakSet 记录，且没打过 data 标记
-                if (!processedModals.has(modal) && !modal.dataset.autoClosed) {
-                    const success = processModal(modal)
-                    if (success) {
-                        processedModals.add(modal)
-                    }
-                }
-            } else {
-                // 如果弹窗隐藏了，清除 data 标记，方便下次真正的新弹窗能处理
-                if (modal.dataset.autoClosed) {
-                    delete modal.dataset.autoClosed
-                    processedModals.delete(modal)
-                }
+            if (processedModals.has(modal) || !isVisible(modal)) return
+
+            const success = processModal(modal)
+            if (success) {
+                processedModals.add(modal)
+                log('processedModals[Before]: ', processedModals)
             }
         }
     }

@@ -1,13 +1,13 @@
 const Config = (function () {
     return {
         // 弹窗容器选择器：用于判断弹窗是否可见，并限制查找范围
-        modalSelector: '[role="dialog"]',
+        modalSelector: '.modal-overlay',
 
         // 复选框选择器：在弹窗容器内查找所有需要勾选的项
         checkboxSelector: 'input[type="checkbox"]',
 
         // 确认按钮选择器：在弹窗容器内查找按钮
-        confirmButtonSelector: 'button',
+        confirmButtonSelector: '.modal-actions button',
         // 确认按钮文本（用于模糊匹配，大小写不敏感）
         confirmButtonText: ['确定', '确认', 'OK', '同意', '接受', '知道了'],
 
