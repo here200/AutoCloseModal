@@ -72,7 +72,7 @@
     function scanAndProcess() {
         const modals = document.querySelectorAll(CONFIG.modalSelector)
         for (const modal of modals) {
-            if (processedModals.has(modal) || !isVisible(modal)) return
+            if (processedModals.has(modal) || !isVisible(modal)) continue
 
             const success = processModal(modal)
             if (success) {
