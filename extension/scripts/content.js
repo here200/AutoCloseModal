@@ -24,10 +24,53 @@
         return null
     }
 
-    function processModal(modal) {
-        // observer 暂停观察
-        log('暂停观察 DOM 变化...')
-        observer.disconnect()
+    class ObserverManager {
+        enabled = true
+        observer = null
+        callback = null
+
+        constructor(cb) {
+            this.callback = cb
+            // 使用 MutationObserver 监听 DOM 变化，以便弹窗出现时能快速响应
+            this.observer = new MutationObserver(cb)
+        }
+
+        pause() {
+            log('暂停观察 DOM 变化...')
+            this.observer.disconnect()
+        }
+
+        recovery() {
+            if (this.enabled) {
+                log('开始观察 DOM 变化...')
+                this.observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style', 'class', 'hidden', 'aria-hidden']
+                })
+            }
+        }
+
+        stop() {
+            this.enabled = false
+            this.pause()
+        }
+
+        start() {
+            this.enabled = true
+            this.recovery()
+            this.callback()
+        }
+
+        once() {
+            this.callback()
+        }
+    }
+
+
+    function checkBox(modal) {
+        observer.pause()
 
         // 勾选所有可见且未选中的复选框
         const checkboxes = modal.querySelectorAll(CONFIG.checkboxSelector)
@@ -40,15 +83,16 @@
             }
         })
 
-        // observer 恢复观察
-        observeDOMChanges()
+        observer.recovery()
 
-        // 如果弹窗里没有找到任何可见复选框，认为尚未加载完成，返回 false 等待下次重试
         if (!checkboxFound) {
             log('未找到可见复选框，等待重试...')
-            return false
         }
 
+        return checkboxFound
+    }
+
+    function buttonProcess(modal) {
         // 查找并点击确认按钮
         const confirmBtn = findConfirmButton(modal)
         if (!confirmBtn) {
@@ -64,6 +108,10 @@
         }, CONFIG.confirmButtonDelay)
 
         return true
+    }
+
+    function processModal(modal) {
+        return checkBox(modal) && buttonProcess(modal)
     }
 
     // 用于记录已经处理过且弹窗仍然可见的 modal，避免重复点击
@@ -82,27 +130,12 @@
         }
     }
 
-    // 使用 MutationObserver 监听 DOM 变化，以便弹窗出现时能快速响应
-    const observer = new MutationObserver(() => {
-        scanAndProcess()
-    })
-
-    function observeDOMChanges() {
-        log('开始观察 DOM 变化...')
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['style', 'class', 'hidden', 'aria-hidden']
-        })
-    }
-
-    observeDOMChanges()
+    const observer = new ObserverManager(scanAndProcess)
+    observer.start()
 
     // 定时扫描兜底
     // setInterval(scanAndProcess, CONFIG.interval)
 
-    scanAndProcess()
 
     log('脚本已启动，请确认选择器配置正确。当前配置:', CONFIG)
 })()
